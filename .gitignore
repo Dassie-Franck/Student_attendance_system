@@ -1,0 +1,4 @@
+dataset/*/*.jpg
+dataset/*/*.png
+dataset/*/*.jpeg
+dataset/*/*.json

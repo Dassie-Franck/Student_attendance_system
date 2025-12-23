@@ -1,0 +1,16 @@
+<h2>Mes cours</h2>
+
+<ul>
+{% for c in courses %}
+    <li>
+        {{ c.nom }} | {{ c.filiere }} | {{ c.semestre }}
+        <ul>
+        {% for s in c.sessions %}
+            <li>{{ s.date }} ---- {{ s.seance }}</li>
+        {% endfor %}
+        </ul>
+    </li>
+{% endfor %}
+</ul>
+
+<a href="/cours/create">➕ Ajouter un cours</a>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Créer un cours</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cours.css') }}">
+</head>
+<body>
+
+<div class="container">
+    <h2>📘 Création d’un cours</h2>
+
+    <form method="post" class="course-form">
+
+        <!-- Nom du cours -->
+        <div class="form-group">
+            <label>Nom du cours</label>
+            <input type="text" name="nom" placeholder="Ex: Réseaux Informatiques"
+                   required>
+        </div>
+
+        <!-- Filière -->
+        <div class="form-group">
+            <label>Filière</label>
+            <input type="text" name="filiere" placeholder="Ex: Informatique"
+                   required>
+        </div>
+
+        <!-- Semestre -->
+        <div class="form-group">
+            <label>Semestre</label>
+            <select name="semestre" required>
+                <option value="">-- Choisir le semestre --</option>
+                <option value="S1">Semestre 1 (S1)</option>
+                <option value="S2">Semestre 2 (S2)</option>
+            </select>
+        </div>
+
+        <hr>
+
+        <h3>🕒 Séances du cours</h3>
+
+        <!-- Session 1 -->
+        <div class="session-box">
+            <h4>Séance 1</h4>
+
+            <div class="session-row">
+                <div>
+                    <label>Date</label>
+                    <input type="date" name="date1" required>
+                </div>
+
+                <div>
+                    <label>Heure</label>
+                    <select name="seance1" required>
+    {% for seance in seances %}
+        <option value="{{ seance.value }}">
+            {{ seance.label }}
+        </option>
+    {% endfor %}
+</select>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Session 2 -->
+        <div class="session-box">
+            <h4>Séance 2 (optionnelle)</h4>
+
+            <div class="session-row">
+                <div>
+                    <label>Date</label>
+                    <input type="date" name="date2">
+                </div>
+
+                <div>
+                    <label>Heure</label>
+                    <select name="seance2">
+                        <option value="">-- Aucune --</option>
+                        {% for seance in seances %}
+                            <option value="{{ seance.value }}">
+                                {{ seance.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-submit">
+            ✔ Enregistrer le cours
+        </button>
+
+    </form>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,23 @@
+<form method="post" enctype="multipart/form-data">
+    <label>Nom</label>
+    <input type="text" name="nom" required value="{{ student.nom if student else '' }}">
+
+    <label>Prénom</label>
+    <input type="text" name="prenom" required value="{{ student.prenom if student else '' }}">
+
+    <label>Matricule</label>
+    <input type="text" name="matricule" required value="{{ student.matricule if student else '' }}">
+
+    <label>Filière</label>
+    <input type="text" name="filiere" required value="{{ student.filiere if student else '' }}">
+
+    <label>Année</label>
+    <input type="text" name="annee" required value="{{ student.annee if student else '' }}">
+
+    <h4>Photos (avant, gauche, droite)</h4>
+    <input type="file" name="avant" {% if not student %} required {% endif %}>
+    <input type="file" name="gauche" {% if not student %} required {% endif %}>
+    <input type="file" name="droite" {% if not student %} required {% endif %}>
+
+    <button type="submit">Enregistrer</button>
+</form>
