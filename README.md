@@ -108,6 +108,7 @@ page creation d'etudiant accessible uniquement par le responsable
 
 4- les etapes 1 et 2 et 3 sont dependantes , toujours verifier la reussites de chaque etapes avant de continuer
 
+5- si le dossier dataset n'est pas creer , fait le a la racine du dossier projet  \xampp\htdocs\student_attendance_system>
 ---
 
 >  Les images **ne sont pas incluses sur GitHub** pour éviter de surcharger le repo. vous devez generer vous meme vos images.
