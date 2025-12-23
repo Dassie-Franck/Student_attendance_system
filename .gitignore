@@ -3,3 +3,4 @@ dataset/*/*.png
 dataset/*/*.jpeg
 dataset/*/*.json
 dataset/etudiant_15/*.jpg
+dataset/etudiant_15/avant.jpg
