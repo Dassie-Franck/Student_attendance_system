@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Ajouter Cours - SystemPresence</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="dashboard-body">
+    <div class="dashboard-wrapper">
+        
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h3>SystemPresence</h3>
+                <p>Espace Chef de Département</p>
+            </div>
+        </nav>
+
+    <div class="main-content">
+            <header class="topbar">
+                <h2>Ajout cours</h2>
+                <div class="user-area">
+                    <span class="user-name">{{ session.get('prenom', 'Admin') }}</span>
+                    <a href="{{ url_for('manage_cours') }}" class="btn-logout-pro" style="border-color: #bdc3c7; color: #7f8c8d;">Retour</a>
+                </div>
+            </header>
+
+        <div class="main-content">
+            <section class="content-body">
+                <div class="form-container" style="max-width: 600px; margin: 50px auto;">
+                    
+                    <form action="" method="POST" style="background: white; padding: 30px; border-radius: 8px;">
+                        <h2>Créer une nouvelle matière</h2>
+                        <br>
+
+                        <div class="input-group">
+                            <label>Nom du cours</label>
+                            <input type="text" name="nom" placeholder="Ex: Langage C" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Semestre</label>
+                            <select name="semestre" style="width: 100%; padding: 15px; border-radius: 8px;">
+                                <option value="Semestre 1">Semestre 1</option>
+                                <option value="Semestre 2">Semestre 2</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label>Enseignant responsable</label>
+                            <select name="user_id" style="width: 100%; padding: 15px; border-radius: 8px;" required>
+                                <option value="" disabled selected>-- Choisir un enseignant --</option>
+                                
+                                {% for prof in profs %}
+                                    <option value="{{ prof.id }}">{{ prof.nom }} {{ prof.prenom }}</option>
+                                {% endfor %}
+                                
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn-login">Créer le cours</button>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </div>
+</body>
+</html>

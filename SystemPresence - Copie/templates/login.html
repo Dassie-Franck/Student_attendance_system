@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - SystemPresence</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body class="login-body">
+
+    <div class="login-wrapper">
+        
+        <div class="login-image-section">
+            <div class="overlay">
+                <h1>SystemPresence</h1>
+                <p>La gestion intelligente des présences par reconnaissance faciale.</p>
+            </div>
+        </div>
+
+        <div class="login-form-section">
+            <div class="form-container">
+                <h2>Bienvenue 👋</h2>
+                <p class="subtitle">Entrez vos identifiants pour accéder à l'espace.</p>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                  {% if messages %}
+                    {% for category, message in messages %}
+                      <div class="alert alert-{{ category }}">
+                        {{ message }}
+                      </div>
+                    {% endfor %}
+                  {% endif %}
+                {% endwith %}
+
+                <form action="{{ url_for('login') }}" method="POST">
+                    <div class="input-group">
+                        <label for="identifiant"> identifiant</label>
+                        <input type="text" name="identifiant" placeholder="Email ou Matricule" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="password">Mot de passe</label>
+                        <input type="password" id="password" name="password"  required>
+                    </div>
+
+                    <button type="submit" class="btn-login">Se connecter</button>
+                    
+                    <p class="footer-text">Mot de passe oublié ? Contactez l'administrateur.</p>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

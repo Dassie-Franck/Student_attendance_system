@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SystemPresence</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="dashboard-wrapper">
+        
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h3>SystemPresence</h3>
+                <p>Espace Chef de Département</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('admin_dashboard') }}"  style="color: #3498db; font-weight: bold; background-color: rgba(52, 152, 219, 0.1); border-left: 4px solid #3498db;"><i class="fas fa-chart-bar" style="width: 20px; text-align: center;"></i> &nbsp; Vue d'ensemble</a></li>
+                
+                <li class="section-title">ADMINISTRATION</li>
+                <li><a href="{{ url_for('manage_students') }}"><i class="fas fa-user-graduate"></i> &nbsp; Gérer Étudiants</a></li>
+                <li><a href="{{ url_for('manage_teachers') }}"><i class="fas fa-chalkboard-teacher"></i> &nbsp; Gérer Enseignants</a></li>
+                <li><a href="{{ url_for('manage_delegates') }}"><i class="fas fa-handshake"></i> &nbsp; Gérer Délégués</a></li>
+
+                <li class="section-title">PÉDAGOGIE</li>
+                <li><a href="{{ url_for('manage_cours') }}"><i class="fas fa-book-open"></i> &nbsp; Matières & Cours</a></li>
+                
+                <li>
+                    <a href="{{ url_for('view_attendance') }}">
+                        <i class="fas fa-list-alt"></i> &nbsp; Listes d'Appel
+                    </a>
+                </li>
+                <li><a href="{{ url_for('bilan_absences') }}"><i class="fas fa-chart-pie"></i> &nbsp; Bilan Absences</a></li>
+                
+                <li class="section-title">OUTILS</li>
+                <li><a href="{{ url_for('logout') }}" style="color: #e74c3c;"><i class="fas fa-power-off"></i> &nbsp; Déconnexion</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            
+            <header class="topbar">
+                <div class="page-title">
+                    <h2 style="font-size: 1.5rem; font-weight: bold; color: #2c3e50;">
+                        {% if request.endpoint == 'manage_students' %}Gestion des Étudiants
+                        {% elif request.endpoint == 'manage_delegates' %}Gestion des Délégués
+                        {% elif request.endpoint == 'add_student' %}Nouvel Étudiant
+                        {% else %}Tableau de bord{% endif %}
+                    </h2>
+                </div>
+
+                <div class="user-area">
+                    <span class="user-name" style="margin-right: 15px;">Bonjour, <strong>{{ session.get('prenom', 'Super Admin') }}</strong></span>
+                    <a href="{{ url_for('login') }}" class="btn-logout-pro">Déconnexion</a>
+                </div>
+            </header>
+
+            <div class="content-body">
+
+                {% if request.endpoint == 'admin_dashboard' %}
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Étudiants</h3>
+                        <div class="number" style="color: #3498db;">120</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Enseignants & Délégués</h3>
+                        <div class="number" style="color: #2ecc71;">12</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Classes</h3>
+                        <div class="number" style="color: #f1c40f;">3</div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% block content %}
+                {% endblock %}
+
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

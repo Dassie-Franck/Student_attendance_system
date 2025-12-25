@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Espace Enseignant - SystemPresence</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body class="dashboard-body">
+
+    <div class="dashboard-wrapper">
+        
+        <nav class="sidebar">
+            <ul class="nav-links">
+                <li class="active">
+                    <a href="{{ url_for('dashboard_enseignant') }}">
+                        <i class="fas fa-chart-bar"></i><span>Vue d'ensemble</span>
+                    </a>
+                </li>
+                <li class="section-title">PÉDAGOGIE</li>
+                <li>
+                    <a href="{{ url_for('mark_attendance') }}">
+                        <i class="fas fa-camera"></i><span>Lancer l'Appel (Scan)</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('view_attendance') }}">
+                        <i class="fas fa-list-ul"></i><span>Mes Listes d'Appel</span>
+                    </a>
+                </li>
+                <li class="section-title">OUTILS</li>
+                <li>
+                    <a href="{{ url_for('logout') }}" class="logout-link">
+                        <i class="fas fa-power-off"></i><span>Déconnexion</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="main-content">
+            <header class="topbar">
+                <h2>Tableau de Bord Enseignant</h2>
+                <div class="user-area">
+                    <span class="user-name">Bonjour, <strong>M. Fotso</strong></span>
+                </div>
+            </header>
+
+            <section class="content-body">
+                <div class="stats-grid" style="margin-bottom: 30px;">
+                    <div class="stat-card">
+                        <h3>Matières</h3>
+                        <div class="number" style="color: #3498db;">2</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Prochain Cours</h3>
+                        <div class="number" style="color: #2c3e50; font-size: 1.2rem;">08:00 - 09:50</div>
+                    </div>
+                </div>
+
+                <div style="background: white; padding: 30px; border-radius: 12px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.03);">
+                    <h4 style="margin-bottom: 20px;">Cours actuel : Langage C</h4>
+                    <a href="{{ url_for('mark_attendance') }}" class="btn-add" style="background-color: #2c3e50; padding: 15px 30px; text-decoration: none; display: inline-block;">
+                        <i class="fas fa-video"></i> Ouvrir le Scan Facial
+                    </a>
+                </div>
+            </section>
+        </div>
+    </div>
+</body>
+</html>

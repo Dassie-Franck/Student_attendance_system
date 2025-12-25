@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Ajouter un Délégué - SystemPresence</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="dashboard-body">
+
+    <div class="dashboard-wrapper">
+        
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h3>SystemPresence</h3>
+                <p>Espace Chef de Département</p>
+            </div>
+        </nav>
+
+        <div class="main-content">
+            <header class="topbar">
+                <h2>Nouveau Délégué</h2>
+                <div class="user-area">
+                    <span class="user-name">{{ session.get('prenom', 'Admin') }}</span>
+                    <a href="{{ url_for('manage_delegates') }}" class="btn-logout-pro" style="border-color: #bdc3c7; color: #7f8c8d;">Retour</a>
+                </div>
+            </header>
+
+            <section class="content-body">
+                
+                <div class="recent-table" style="max-width: 600px; margin: 0 auto;"> 
+                    
+                    <h3 style="color: #2c3e50; margin-bottom: 20px; border-bottom: 1px solid #ecf0f1; padding-bottom: 10px;">
+                        Informations du Délégué
+                    </h3>
+
+                    <form action="{{ url_for('add_delegate') }}" method="POST">
+                        
+                        <div class="input-group">
+                            <label for="prenom">Prénom</label>
+                            <input type="text" name="prenom" id="prenom" placeholder="Ex: Thomas" required>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="email">Email (Sera l'identifiant de connexion)</label>
+                            <input type="email" name="email" id="email" placeholder="Ex: thomas@3il.com" required>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="password">Mot de passe provisoire</label>
+                            <input type="password" name="password" id="password" placeholder="******" required>
+                        </div>
+
+                        <button type="submit" class="btn-add" style="width: 100%; border: none; cursor: pointer; font-size: 16px; margin-top: 10px;">
+                            Enregistrer le Délégué
+                        </button>
+
+                    </form>
+                </div>
+
+            </section>
+        </div>
+    </div>
+</body>
+</html>
