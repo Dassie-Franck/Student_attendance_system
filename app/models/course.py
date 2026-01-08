@@ -1,5 +1,5 @@
+# app/models/course.py
 from app.database.connDB import db
-from app.models.enum import CourSession
 
 
 class CoursModel(db.Model):
@@ -15,26 +15,30 @@ class CoursModel(db.Model):
     filiere = db.Column(db.String(100), nullable=False)
     semestre = db.Column(db.String(20), nullable=False)
 
-    # Relation ORM
-    sessions = db.relationship(
-        "CoursSessionModel",
-        backref="cours",
-        cascade="all, delete-orphan",
-        lazy=True
-    )
+    # Propriété pour accéder aux sessions
+    @property
+    def sessions(self):
+        """Retourne les sessions du cours"""
+        from app.models.course_session import CoursSessionModel
+        if not hasattr(self, '_sessions'):
+            self._sessions = CoursSessionModel.query.filter_by(cours_id=self.id).all()
+        return self._sessions
 
+    @sessions.setter
+    def sessions(self, value):
+        """Setter pour les sessions"""
+        self._sessions = value
 
-class CoursSessionModel(db.Model):
-    __tablename__ = "cours_session"
-
-    id = db.Column(db.Integer, primary_key=True)
-    cours_id = db.Column(
-        db.Integer,
-        db.ForeignKey("cours.id", onupdate="CASCADE", ondelete="CASCADE"),
-        nullable=False
-    )
-    date = db.Column(db.Date, nullable=False)
-    seance = db.Column(
-        db.Enum("1", "2", name="seance_enum"),
-        nullable=False
-    )
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'nom': self.nom,
+            'user_id': self.user_id,
+            'filiere': self.filiere,
+            'semestre': self.semestre,
+            'sessions': [{
+                'id': s.id,
+                'date': s.date.isoformat() if s.date else None,
+                'seance': s.seance
+            } for s in self.sessions]
+        }

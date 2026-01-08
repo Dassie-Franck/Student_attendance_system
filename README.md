@@ -6,7 +6,8 @@ Il permet de détecter un visage via la webcam, de l'identifier grâce aux embed
 
 Technologies utilisées :
 - Python 3.10+ dans un environement .venv pour gerer la compatibiliter avec les bibiotheque de gestion embedding et reconnaissance faciale
-- [DeepFace](https://github.com/serengil/deepface) (pour la reconnaissance faciale)
+- [ArcFace](https://github.com/serengil/Arface) (pour la reconnaissance faciale)
+- yolov8: est un modèle d’intelligence artificielle de vision par ordinateur utilisé pour la détection d’objets, la segmentation et la classification d’images  en temps réel.
 - OpenCV (pour la capture et affichage vidéo)
 - NumPy et JSON (pour la gestion des embeddings)
 - TensorFlow (backend DeepFace)

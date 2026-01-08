@@ -1,0 +1,28 @@
+<header class="topbar">
+
+    <div class="page-title">
+        <h2 style="font-size: 1.5rem; font-weight: bold; color: #2c3e50;">
+            {% if request.endpoint == 'students.list_students' %}
+                Gestion des Étudiants
+            {% elif request.endpoint == 'students.create_student' %}
+                Nouvel Étudiant
+            {% elif request.endpoint == 'user.list_users' %}
+                 Gestion des Utilisateurs
+            {% elif request.endpoint == 'user.create_user' %}
+                Nouvel Utilisateur
+
+            {% else %}
+                Tableau de bord
+            {% endif %}
+        </h2>
+    </div>
+
+    <div class="user-area">
+        <strong>
+            Connecté :
+            {{ session.get('nom') }}
+            ({{ session.get('role') }})
+        </strong>
+    </div>
+
+</header>

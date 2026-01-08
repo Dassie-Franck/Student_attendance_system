@@ -2,76 +2,72 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Connexion</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f8;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .container {
-            background: #fff;
-            padding: 30px 40px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 20px rgba(0,0,0,0.1);
-            width: 350px;
-        }
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #333;
-        }
-        input, button {
-            width: 100%;
-            padding: 10px 12px;
-            margin: 8px 0;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            box-sizing: border-box;
-        }
-        button {
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.3s ease;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .error {
-            color: red;
-            text-align: center;
-            margin-top: 10px;
-            font-size: 14px;
-        }
-        label {
-            font-weight: bold;
-            font-size: 14px;
-            color: #555;
-        }
-    </style>
+    <title>Connexion - SystemPresence</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css', v=1) }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
-<body>
-<div class="container">
-    <h2>Connexion</h2>
-    <form method="post">
-        <label>Email</label>
-        <input name="email" placeholder="Email" type="email" required>
 
-        <label>Mot de passe</label>
-        <input name="password" type="password" placeholder="Mot de passe" required>
+<body class="login-body">
 
-        <button type="submit">Se connecter</button>
+<div class="login-wrapper">
 
-        {% if error %}
-            <div class="error">{{ error }}</div>
-        {% endif %}
-    </form>
+    <div class="login-image-section">
+        <div class="overlay">
+            <h1>SystemPresence</h1>
+            <p>Gestion intelligente des présences</p>
+        </div>
+    </div>
+
+    <div class="login-form-section">
+        <div class="form-container">
+
+            <h2>Bienvenue</h2>
+            <p class="subtitle">Connectez-vous à votre espace</p>
+
+            <!-- FLASH MESSAGES -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="alert alert-{{ category }}">
+                      {{ message }}
+                  </div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+
+            <form method="POST" novalidate>
+
+                <div class="input-group">
+                    <label for="email">Identifiant</label>
+                    <input type="email" id="email" name="email"
+                           placeholder="ex: admin@system.com"
+                           autocomplete="username"
+                           required>
+                </div>
+
+                <div class="input-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" name="password"
+                           autocomplete="current-password"
+                           required>
+                </div>
+
+                <button type="submit" class="btn-login">
+                    Se connecter
+                </button>
+
+                <p class="footer-text">
+                    Mot de passe oublié ? Contactez l’administrateur.
+                </p>
+
+            </form>
+
+        </div>
+    </div>
+
 </div>
+
 </body>
 </html>

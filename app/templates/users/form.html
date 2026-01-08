@@ -1,0 +1,47 @@
+<form id="userForm" method="POST" class="row g-3">
+    <input type="hidden" id="user_id" name="user_id">
+
+    <div class="col-md-6">
+        <label for="nom" class="form-label">Nom *</label>
+        <input type="text" class="form-control" id="nom" name="nom"
+               value="{{ user.nom if user else '' }}" required>
+    </div>
+
+    <div class="col-md-6">
+        <label for="prenom" class="form-label">Prénom *</label>
+        <input type="text" class="form-control" id="prenom" name="prenom"
+               value="{{ user.prenom if user else '' }}" required>
+    </div>
+
+    <div class="col-md-6">
+        <label for="email" class="form-label">Email *</label>
+        <input type="email" class="form-control" id="email" name="email"
+               value="{{ user.email if user else '' }}" required>
+    </div>
+
+    <div class="col-md-6">
+        <label for="password" class="form-label">
+            {% if user %}Nouveau mot de passe (laisser vide pour ne pas changer)
+            {% else %}Mot de passe *{% endif %}
+        </label>
+        <input type="password" class="form-control" id="password" name="password"
+               {% if not user %}required{% endif %}>
+    </div>
+
+    <div class="col-md-6">
+        <label for="role" class="form-label">Rôle *</label>
+        <select class="form-select" id="role" name="role" required>
+            <option value="">Sélectionnez un rôle</option>
+            <option value="HEAD" {% if user and user.role == 'HEAD' %}selected{% endif %}>Responsable</option>
+            <option value="ENSEIGNANT" {% if user and user.role == 'ENSEIGNANT' %}selected{% endif %}>Enseignant</option>
+            <option value="DELEGUE" {% if user and user.role == 'DELEGUE' %}selected{% endif %}>delegue</option>
+        </select>
+    </div>
+
+    <div class="col-md-6">
+        <label for="filiere" class="form-label">Filière</label>
+        <input type="text" class="form-control" id="filiere" name="filiere"
+               value="{{ user.filiere if user else '' }}"
+               placeholder="Ex: Génie Informatique">
+    </div>
+</form>

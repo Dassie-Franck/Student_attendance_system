@@ -1,0 +1,67 @@
+<nav class="sidebar">
+
+    <div class="sidebar-header">
+        <h3>SystemPresence</h3>
+        <p>Espace Enseignant</p>
+    </div>
+
+    <ul class="nav-links">
+
+        <li>
+            <a href=""
+               class="{% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+                <i class="fas fa-chart-bar"></i> Vue d'ensemble
+            </a>
+        </li>
+
+        <li class="section-title">ADMINISTRATION</li>
+
+        <li>
+            <a href="{{ url_for('cours.list_courses') }}"
+               class="{% if request.endpoint.startswith('cours.') %}active{% endif %}">
+                <i class="fas fa-user-graduate"></i> Gérer Cours
+            </a>
+        </li>
+
+<!--       <li>-->
+<!--    <a href="" class="{% if request.endpoint == 'user.list_users' %}active{% endif %}">-->
+<!--        <i class="fas fa-chalkboard-teacher"></i> &nbsp; Lancer le Scan-->
+<!--    </a>-->
+<!--</li>-->
+
+        <li class="section-title">PÉDAGOGIE</li>
+
+<!--        <li>-->
+<!--            <a href=""-->
+<!--               class="{% if request.endpoint == 'manage_courses' %}active{% endif %}">-->
+<!--                <i class="fas fa-book-open"></i> Matières & Cours-->
+<!--            </a>-->
+<!--        </li>-->
+
+        <!-- Ajouter ce lien après les autres liens de navigation -->
+<!-- Dans votre base_users.html -->
+ <li class="nav-item">
+            <a class="nav-link {% if request.endpoint.startswith('attendance.') %}active{% endif %}"
+               href="{{ url_for('attendance.list_attendance') }}">
+                <i class="fas fa-clipboard-list"></i>
+                <span>Liste d'Appel</span>
+            </a>
+        </li>
+
+<!--        <li>-->
+<!--            <a href=""-->
+<!--               class="{% if request.endpoint == 'attendance_summary' %}active{% endif %}">-->
+<!--                <i class="fas fa-chart-pie"></i> Bilan Absences-->
+<!--            </a>-->
+<!--        </li>-->
+
+        <li class="section-title">OUTILS</li>
+
+        <li>
+            <a href="{{url_for('auth.logout')}}"class="{% if request.endpoint.startswith('auth.')%}active{% endif %}" style="color: #e74c3c;">
+                <i class="fas fa-power-off"></i> Déconnexion
+            </a>
+        </li>
+
+    </ul>
+</nav>

@@ -1,0 +1,495 @@
+<!-- app/templates/attendance/consulter.html -->
+{% extends "base.html" %}
+
+{% block title %}Liste d'Appel{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-clipboard-list me-2"></i>Liste d'Appel - {{ session_data.cours.nom if session_data else 'Sélectionnez une session' }}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+
+    <!-- Filtres -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filtres</h5>
+        </div>
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <!-- Cours -->
+                <div class="col-md-4">
+                    <label class="form-label">Cours</label>
+                    <select name="cours_id" class="form-select" onchange="this.form.submit()">
+                        <option value="">Sélectionnez un cours</option>
+                        {% for cours in cours_list %}
+                        <option value="{{ cours.id }}" {% if cours.id|string == selected_cours %}selected{% endif %}>
+                            {{ cours.nom }} ({{ cours.filiere }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Date -->
+                <div class="col-md-3">
+                    <label class="form-label">Date</label>
+                    <input type="date" name="date" class="form-control" value="{{ selected_date }}"
+                           onchange="this.form.submit()">
+                </div>
+
+                <!-- Filière -->
+                <div class="col-md-3">
+                    <label class="form-label">Filière</label>
+                    <select name="filiere" class="form-select" onchange="this.form.submit()">
+                        <option value="">Toutes les filières</option>
+                        {% for filiere in filieres %}
+                        <option value="{{ filiere }}" {% if filiere == selected_filiere %}selected{% endif %}>
+                            {{ filiere }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Bouton Reset -->
+                <div class="col-md-2 d-flex align-items-end">
+                    <a href="{{ url_for('attendance.consulter_presences') }}" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-redo"></i> Réinitialiser
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if session_data %}
+    <!-- Informations de la session -->
+    <div class="card mb-4 border-info">
+        <div class="card-header bg-info text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        Session du {{ session_data.date.strftime('%d/%m/%Y') }}
+                    </h5>
+                </div>
+                <div>
+                    <span class="badge bg-light text-dark fs-6">
+                        {{ etudiants|length }} étudiants
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <p class="mb-1"><i class="fas fa-book me-2"></i><strong>Cours:</strong> {{ session_data.cours.nom }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1"><i class="fas fa-user-tie me-2"></i><strong>Professeur:</strong>
+                        {{ session_data.professeur.prenom }} {{ session_data.professeur.nom }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1"><i class="fas fa-graduation-cap me-2"></i><strong>Filière:</strong> {{ session_data.cours.filiere }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tableau des présences -->
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-list-check me-2"></i>Liste d'Appel</h5>
+                <div>
+                    <span class="badge bg-light text-dark me-2">
+                        Présents: {{ stats.presents }}
+                    </span>
+                    <span class="badge bg-light text-dark">
+                        Absents: {{ stats.absents }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0">
+                    <thead class="table-danger">
+                        <tr>
+                            <th>Matricule</th>
+                            <th>Nom</th>
+                            <th>Prénom</th>
+                            <th>Filière</th>
+                            <th>Année</th>
+                            <th>Heure Enregistrement</th>
+                            <th class="text-center">Statut Séance 1</th>
+                            <th class="text-center">Statut Séance 2</th>
+                            <th class="text-center">Total Heures Absence</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for etudiant in etudiants %}
+                        {% set presence = presences_par_etudiant.get(etudiant.id) %}
+                        <tr>
+                            <td>
+                                <strong>{{ etudiant.matricule }}</strong>
+                            </td>
+                            <td>{{ etudiant.nom }}</td>
+                            <td>{{ etudiant.prenom }}</td>
+                            <td>
+                                <span class="text-dark">{{ etudiant.filiere }}</span>
+                            </td>
+                            <td>{{ etudiant.annee }}</td>
+                            <td>
+                                {% if presence %}
+                                <span class="text-muted">{{ presence.date_enregistrement.strftime('%H:%M') }}</span>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Statut Séance 1 -->
+                            <td class="text-center">
+                                {% if presence and presence.statut == 'P' %}
+                                <span class=" text-success">
+                                    <i class="fas fa-check me-1"></i>Présent
+                                </span>
+                                {% elif presence and presence.statut == 'A' %}
+                                <span class="text-danger">
+                                    <i class="fas fa-times me-1"></i>Absent (2h)
+                                </span>
+                                {% else %}
+                                <span class="text-secondary">
+                                    <i class="fas fa-question me-1"></i>Non enregistré
+                                </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Statut Séance 2 -->
+                            <td class="text-center">
+                                {% if presence_seance2.get(etudiant.id) %}
+                                    {% if presence_seance2[etudiant.id].statut == 'P' %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check me-1"></i>Présent
+                                    </span>
+                                    {% else %}
+                                    <span class="text-danger">
+                                        <i class="fas fa-times me-1"></i>Absent (2h)
+                                    </span>
+                                    {% endif %}
+                                {% else %}
+                                <span class="text-secondary">
+                                    <i class="fas fa-question me-1"></i>Non enregistré
+                                </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Total Heures d'Absence -->
+                            <td class="text-center">
+                                {% set heures_absence = 0 %}
+                                {% if presence and presence.statut == 'A' %}
+                                    {% set heures_absence = heures_absence + 2 %}
+                                {% endif %}
+                                {% if presence_seance2.get(etudiant.id) and presence_seance2[etudiant.id].statut == 'A' %}
+                                    {% set heures_absence = heures_absence + 2 %}
+                                {% endif %}
+
+                                {% if heures_absence > 0 %}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="fas fa-clock me-1"></i>{{ heures_absence }}h
+                                </span>
+                                {% else %}
+                                <span class="badg
+                                e bg-success">
+                                    <i class="fas fa-check-circle me-1"></i>0h
+                                </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Actions -->
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm">
+                                    <!-- Modifier statut -->
+                                    {% if presence %}
+                                    <button class="btn btn-outline-primary"
+                                            onclick="modifierStatut({{ presence.id }}, {{ etudiant.id }})"
+                                            title="Modifier statut">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    {% endif %}
+
+                                    <!-- Voir bilan étudiant -->
+                                    <a href="{{ url_for('attendance.bilan_etudiant_detail', etudiant_id=etudiant.id) }}"
+                                       class="btn btn-outline-info" title="Voir bilan">
+                                        <i class="fas fa-chart-line"></i>
+                                    </a>
+
+                                    <!-- Marquer présent/absent -->
+                                    <div class="btn-group btn-group-sm">
+                                        <button type="button" class="btn btn-outline-success dropdown-toggle"
+                                                data-bs-toggle="dropdown" title="Marquer présent/absent">
+                                            <i class="fas fa-user-check"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item" href="#"
+                                                   onclick="marquerPresent({{ etudiant.id }}, 1)">
+                                                    <i class="fas fa-check text-success me-2"></i>
+                                                    Présent Séance 1
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="#"
+                                                   onclick="marquerAbsent({{ etudiant.id }}, 1)">
+                                                    <i class="fas fa-times text-danger me-2"></i>
+                                                    Absent Séance 1
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item" href="#"
+                                                   onclick="marquerPresent({{ etudiant.id }}, 2)">
+                                                    <i class="fas fa-check text-success me-2"></i>
+                                                    Présent Séance 2
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="#"
+                                                   onclick="marquerAbsent({{ etudiant.id }}, 2)">
+                                                    <i class="fas fa-times text-danger me-2"></i>
+                                                    Absent Séance 2
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pied de tableau avec statistiques -->
+        <div class="card-footer">
+            <div class="row">
+                <div class="col-md-4">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Chaque absence = 2 heures
+                    </small>
+                </div>
+                <div class="col-md-8 text-end">
+                    <span class="me-3">
+                        <strong>Total heures d'absence:</strong>
+                        <span class="badge bg-warning text-dark fs-6">{{ stats.total_heures_absence }}h</span>
+                    </span>
+                    <span>
+                        <strong>Taux de présence:</strong>
+                        <span class="badge bg-success fs-6">{{ stats.taux_presence }}%</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Boutons d'export -->
+    <div class="mt-4 text-center">
+        <button class="btn btn-success" onclick="window.print()">
+            <i class="fas fa-print me-2"></i>Imprimer la Liste
+        </button>
+        <a href="#" class="btn btn-primary">
+            <i class="fas fa-file-excel me-2"></i>Exporter en Excel
+        </a>
+        <a href="#" class="btn btn-info">
+            <i class="fas fa-envelope me-2"></i>Envoyer aux Étudiants
+        </a>
+    </div>
+
+    {% else %}
+    <!-- Aucune session sélectionnée -->
+    <div class="text-center py-5">
+        <div class="mb-4">
+            <i class="fas fa-clipboard-list fa-4x text-muted"></i>
+        </div>
+        <h4 class="text-muted">Sélectionnez un cours et une date</h4>
+        <p class="text-muted">Choisissez un cours et une date pour afficher la liste d'appel</p>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- Modal pour modifier le statut -->
+<div class="modal fade" id="modalStatut" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Modifier le statut</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formStatut">
+                    <input type="hidden" id="presence_id">
+                    <input type="hidden" id="etudiant_id">
+                    <input type="hidden" id="seance_num" value="1">
+
+                    <div class="mb-3">
+                        <label class="form-label">Étudiant</label>
+                        <input type="text" id="etudiant_nom" class="form-control" readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Séance</label>
+                        <select id="seance" class="form-select">
+                            <option value="1">Séance 1 (08h-09h50)</option>
+                            <option value="2">Séance 2 (10h10-12h00)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Statut</label>
+                        <select id="statut" class="form-select">
+                            <option value="P">Présent</option>
+                            <option value="A">Absent</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Motif (optionnel)</label>
+                        <textarea id="motif" class="form-control" rows="2"
+                                  placeholder="Raison de l'absence..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" onclick="enregistrerStatut()">
+                    Enregistrer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script>
+function modifierStatut(presenceId, etudiantId) {
+    $('#presence_id').val(presenceId);
+    $('#etudiant_id').val(etudiantId);
+    $('#modalStatut').modal('show');
+}
+
+function marquerPresent(etudiantId, seance) {
+    $('#etudiant_id').val(etudiantId);
+    $('#seance_num').val(seance);
+    $('#seance').val(seance);
+    $('#statut').val('P');
+    $('#modalStatut').modal('show');
+}
+
+function marquerAbsent(etudiantId, seance) {
+    $('#etudiant_id').val(etudiantId);
+    $('#seance_num').val(seance);
+    $('#seance').val(seance);
+    $('#statut').val('A');
+    $('#modalStatut').modal('show');
+}
+
+function enregistrerStatut() {
+    const data = {
+        etudiant_id: $('#etudiant_id').val(),
+        presence_id: $('#presence_id').val(),
+        seance: $('#seance').val(),
+        statut: $('#statut').val(),
+        motif: $('#motif').val(),
+        cours_session_id: '{{ session_data.id if session_data else "" }}'
+    };
+
+    fetch('/attendance/api/marquer-presence', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Statut enregistré avec succès', 'success');
+            $('#modalStatut').modal('hide');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showToast('Erreur: ' + data.message, 'error');
+        }
+    })
+    .catch(error => {
+        showToast('Erreur de connexion', 'error');
+    });
+}
+
+function showToast(message, type = 'info') {
+    // Créer un toast simple
+    const toast = `<div class="toast align-items-center text-white bg-${type} border-0" role="alert">
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                    data-bs-dismiss="toast"></button>
+        </div>
+    </div>`;
+
+    $('.toast-container').append(toast);
+    $('.toast').toast('show');
+
+    setTimeout(() => $('.toast').remove(), 5000);
+}
+
+// Initialiser les tooltips
+$(document).ready(function() {
+    $('[data-bs-toggle="tooltip"]').tooltip();
+
+    // Créer un conteneur pour les toasts
+    if (!$('.toast-container').length) {
+        $('body').append('<div class="toast-container position-fixed top-0 end-0 p-3"></div>');
+    }
+});
+</script>
+
+<style>
+.table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    vertical-align: middle;
+}
+
+.badge {
+    font-size: 0.85em;
+    padding: 0.4em 0.7em;
+}
+
+.card-header {
+    font-weight: 600;
+}
+
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+}
+
+@media print {
+    .btn, .card-header, .modal, .toast-container,
+    .card-footer, .text-center:last-child {
+        display: none !important;
+    }
+
+    .table {
+        font-size: 12px;
+    }
+
+    .badge {
+        border: 1px solid #000;
+        color: #000;
+        background: none !important;
+    }
+}
+</style>
+
+{% endblock %}

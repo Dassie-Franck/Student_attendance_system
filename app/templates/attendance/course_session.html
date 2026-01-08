@@ -1,0 +1,113 @@
+<!-- app/templates/attendance/course_sessions.html -->
+{% extends "base_users.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold">
+                <i class="fas fa-calendar-alt text-primary me-2"></i>
+                Séances du cours : {{ cours.nom }}
+            </h4>
+            <p class="text-muted mb-0">
+                <i class="fas fa-graduation-cap"></i> {{ cours.filiere }} •
+                <i class="fas fa-book"></i> Semestre {{ cours.semestre }}
+            </p>
+        </div>
+        <div>
+            <a href="{{ url_for('cours.list_courses') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour aux cours
+            </a>
+        </div>
+    </div>
+
+    {% if sessions %}
+    <!-- STATISTIQUES GLOBALES -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h5 class="card-title">{{ sessions|length }}</h5>
+                    <p class="card-text">Séances</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h5 class="card-title">
+                        {{ (sessions|sum(attribute='taux_presence') / sessions|length)|round(2) }}%
+                    </h5>
+                    <p class="card-text">Taux moyen présence</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABLEAU DES SÉANCES -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Séance</th>
+                            <th>Présents</th>
+                            <th>Absents</th>
+                            <th>Taux</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for session in sessions %}
+                        <tr>
+                            <td>
+                                <strong>{{ session.date.strftime('%d/%m/%Y') }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge {% if session.seance == '1' %}bg-info{% else %}bg-warning{% endif %}">
+                                    Séance {{ session.seance }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="text-success fw-bold">{{ session.present_count }}</span>
+                                / {{ session.total_etudiants }}
+                            </td>
+                            <td>
+                                <span class="text-danger">{{ session.absent_count }}</span>
+                            </td>
+                            <td>
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar
+                                        {% if session.taux_presence >= 80 %}bg-success
+                                        {% elif session.taux_presence >= 50 %}bg-warning
+                                        {% else %}bg-danger{% endif %}"
+                                        role="progressbar"
+                                        style="width: {{ session.taux_presence }}%">
+                                        {{ session.taux_presence }}%
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <a href="{{ url_for('attendance.view_session_attendance', session_id=session.id) }}"
+                                   class="btn btn-primary btn-sm">
+                                    <i class="fas fa-list"></i> Voir détail
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center text-muted mt-5">
+        <i class="fas fa-calendar-times fa-3x mb-3"></i>
+        <p>Aucune séance programmée pour ce cours</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

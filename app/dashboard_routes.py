@@ -8,7 +8,7 @@ def current_user():
     user_id = session.get("user_id")
     if not user_id:
         return None
-    return UserService.get_user_by_id(user_id)
+    return UserService.get_by_id(user_id)
 
 # -------------------- HEAD DASHBOARD --------------------
 @dashboard_bp.route('/head')
@@ -38,4 +38,4 @@ def delegue_dashboard():
         return redirect(url_for("auth.login"))
     if not UserService.is_delegue(user):
         abort(403)
-    return render_template("dashboard/delegue_dashboard.html", user=user)
+    return render_template("dashboard/staff_dashboard.html", user=user)

@@ -1,16 +1,592 @@
-<h2>Mes cours</h2>
+{% extends "base_users.html" %}
 
-<ul>
-{% for c in courses %}
-    <li>
-        {{ c.nom }} | {{ c.filiere }} | {{ c.semestre }}
-        <ul>
-        {% for s in c.sessions %}
-            <li>{{ s.date }} ---- {{ s.seance }}</li>
-        {% endfor %}
-        </ul>
-    </li>
-{% endfor %}
-</ul>
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold">
+            <i class="fas fa-book text-primary me-2"></i>Cours du jour - {{ today }}
+        </h4>
+        <div>
+            <button class="btn btn-success me-2" onclick="CourseManager.openCreateModal()">
+                <i class="fas fa-plus"></i> Nouveau cours
+            </button>
+            <button class="btn btn-danger" onclick="ScanManager.openScanModal()">
+                <i class="fas fa-camera"></i> Lancer le Scan
+            </button>
+        </div>
+    </div>
 
-<a href="/cours/create">➕ Ajouter un cours</a>
+    <!-- MESSAGE SI AUCUN COURS AUJOURD'HUI -->
+    {% if not courses_by_filiere %}
+    <div class="alert alert-info text-center">
+        <i class="fas fa-info-circle me-2"></i>
+        Aucun cours programmé pour aujourd'hui ({{ today }}).<br>
+        Créez un nouveau cours en cliquant sur le bouton "Nouveau cours".
+    </div>
+    {% endif %}
+
+    <!-- LISTE DES COURS GROUPÉS PAR FILIÈRE -->
+    {% for filiere, courses in courses_by_filiere.items() %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-graduation-cap me-2"></i>Filière : {{ filiere }}
+            </h5>
+            <span class="badge bg-light text-primary">
+                {{ courses|length }} cours{% if courses|length > 1 %}s{% endif %}
+            </span>
+        </div>
+        <div class="card-body table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th width="25%">Nom du cours</th>
+                        <th width="15%">Semestre</th>
+                        <th width="40%">Sessions d'aujourd'hui</th>
+                        <th width="20%" class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for course in courses %}
+                    <tr>
+                        <td class="fw-semibold">{{ course.nom }}</td>
+                        <td>{{ course.semestre }}</td>
+                        <td>
+                            {% for session in course.sessions %}
+                                <span class="badge bg-info mb-1">
+                                    Séance {{ session.seance }} ({{ session.date.strftime('%H:%M') if session.date.strftime('%H:%M') != '00:00' else 'Journée' }})
+                                </span><br>
+                            {% endfor %}
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-primary btn-sm" onclick="CourseManager.openEditModal({{ course.id }})">
+                                <i class="fas fa-edit"></i> Modifier
+                            </button>
+                            <button class="btn btn-danger btn-sm ms-1" onclick="CourseManager.openDeleteModal({{ course.id }})">
+                                <i class="fas fa-trash"></i> Supprimer
+                            </button>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- ================= MODAL GESTION COURS ================= -->
+<div class="modal fade" id="courseModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <form id="courseForm" class="modal-content">
+            <input type="hidden" id="courseId">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="courseModalTitle"></h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label">Nom du cours</label>
+                        <input class="form-control" name="nom" id="nom" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Filière</label>
+                        <input class="form-control" name="filiere" id="filiere" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Semestre</label>
+                        <input class="form-control" name="semestre" id="semestre" required>
+                    </div>
+                </div>
+                <hr>
+                <h6 class="fw-bold mb-3">Sessions</h6>
+                <div id="sessionsContainer"></div>
+                <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="CourseManager.addSessionRow()">
+                    <i class="fas fa-plus"></i> Ajouter une session
+                </button>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button class="btn btn-success">
+                    <i class="fas fa-save"></i> Enregistrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ================= MODAL SUPPRESSION ================= -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Confirmation</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Voulez-vous vraiment supprimer le cours
+                <strong id="deleteCourseName"></strong> ?
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button class="btn btn-danger" onclick="CourseManager.confirmDelete()">Supprimer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODAL SCAN (3 ÉTAPES) ================= -->
+<div class="modal fade" id="scanModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-camera me-2"></i>Lancer un scan</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Étape 1: Sélection de la filière -->
+                <div id="scanStep1" class="scan-step">
+                    <h6>Étape 1: Choisissez une filière</h6>
+                    <div class="mb-3">
+                        <select class="form-select" id="scanFiliereSelect">
+                            <option value="">-- Chargement des filières --</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="ScanManager.loadCoursForFiliereToday()" id="btnNextToCours" disabled>
+                        Suivant <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <!-- Étape 2: Sélection du cours -->
+                <div id="scanStep2" class="scan-step" style="display: none;">
+                    <h6>Étape 2: Choisissez un cours</h6>
+                    <button class="btn btn-secondary btn-sm mb-2" onclick="ScanManager.backToStep(1)">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </button>
+                    <div class="mb-3">
+                        <select class="form-select" id="scanCoursSelect">
+                            <option value="">-- Sélectionnez un cours --</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="ScanManager.loadSessionsForCoursToday()" id="btnNextToSessions" disabled>
+                        Suivant <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <!-- Étape 3: Sélection de la session -->
+                <div id="scanStep3" class="scan-step" style="display: none;">
+                    <h6>Étape 3: Choisissez une session</h6>
+                    <button class="btn btn-secondary btn-sm mb-2" onclick="ScanManager.backToStep(2)">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </button>
+                    <div class="mb-3">
+                        <select class="form-select" id="scanSessionSelect">
+                            <option value="">-- Sélectionnez une session --</option>
+                        </select>
+                    </div>
+                    <div id="sessionInfoCard" class="card mt-3" style="display: none;">
+                        <div class="card-body">
+                            <h6 class="card-title" id="sessionTitle"></h6>
+                            <p class="card-text mb-1">
+                                <i class="fas fa-calendar"></i>
+                                <strong>Date:</strong> <span id="infoDate"></span>
+                            </p>
+                            <p class="card-text">
+                                <i class="fas fa-clock"></i>
+                                <strong>Séance:</strong> <span id="infoSeance"></span>
+                            </p>
+                        </div>
+                    </div>
+                    <button class="btn btn-success mt-3" id="btnStartScan" disabled onclick="ScanManager.startScan()">
+                        <i class="fas fa-camera"></i> Lancer le Scan
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODAL SCAN EN COURS ================= -->
+<div class="modal fade" id="scanningModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">Scan en cours...</h5>
+            </div>
+            <div class="modal-body text-center">
+                <div class="spinner-border text-warning mb-3" style="width: 3rem; height: 3rem;"></div>
+                <p>Reconnaissance faciale active</p>
+                <p class="text-muted small">Fermez la fenêtre de scan pour arrêter</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= SCRIPT ================= -->
+<script>
+// Module pour la gestion des cours
+const CourseManager = {
+    currentCourseId: null,
+    sessionIndex: 0,
+
+    openCreateModal: function() {
+        this.currentCourseId = null;
+        this.sessionIndex = 0;
+        document.getElementById("courseModalTitle").innerText = "Créer un cours";
+        document.getElementById("courseForm").reset();
+        document.getElementById("sessionsContainer").innerHTML = "";
+        this.addSessionRow(false);
+        new bootstrap.Modal(document.getElementById("courseModal")).show();
+    },
+
+    openEditModal: function(id) {
+        fetch(`/cours/${id}/json`)
+            .then(r => r.json())
+            .then(c => {
+                if (!c.id) {
+                    alert("Cours non trouvé");
+                    return;
+                }
+                this.currentCourseId = c.id;
+                this.sessionIndex = 0;
+                document.getElementById("courseModalTitle").innerText = "Modifier le cours";
+                document.getElementById("nom").value = c.nom || "";
+                document.getElementById("filiere").value = c.filiere || "";
+                document.getElementById("semestre").value = c.semestre || "";
+                const sessionsContainer = document.getElementById("sessionsContainer");
+                sessionsContainer.innerHTML = "";
+                if(c.sessions && c.sessions.length > 0){
+                    this.addSessionRow(false, c.sessions[0].date, c.sessions[0].seance);
+                    for(let i = 1; i < c.sessions.length; i++){
+                        this.addSessionRow(true, c.sessions[i].date, c.sessions[i].seance);
+                    }
+                } else {
+                    this.addSessionRow(false);
+                }
+                new bootstrap.Modal(document.getElementById("courseModal")).show();
+            })
+            .catch(error => {
+                console.error("Erreur:", error);
+                alert("Erreur lors du chargement du cours");
+            });
+    },
+
+    openDeleteModal: function(id) {
+        this.currentCourseId = id;
+        fetch(`/cours/${id}/json`)
+            .then(r => r.json())
+            .then(c => {
+                if (c.nom) {
+                    document.getElementById("deleteCourseName").innerText = c.nom;
+                    new bootstrap.Modal(document.getElementById("deleteModal")).show();
+                } else {
+                    alert("Cours non trouvé");
+                }
+            })
+            .catch(error => {
+                console.error("Erreur:", error);
+                alert("Erreur lors du chargement du cours");
+            });
+    },
+
+    confirmDelete: function() {
+        fetch(`/cours/${this.currentCourseId}/delete`, {
+            method: "POST"
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.error || "Erreur lors de la suppression");
+            }
+        })
+        .catch(error => {
+            console.error("Erreur:", error);
+            alert("Erreur lors de la suppression");
+        });
+    },
+
+    addSessionRow: function(removable = true, date = "", seance = "1") {
+        this.sessionIndex++;
+        const trashButton = removable
+            ? `<button type="button" class="btn btn-outline-danger btn-sm remove-session">
+                    <i class="fas fa-trash-alt"></i>
+               </button>`
+            : "";
+        document.getElementById("sessionsContainer").insertAdjacentHTML("beforeend", `
+            <div class="row g-2 mb-2 align-items-center session-item">
+                <div class="col-md-5">
+                    <input type="date" class="form-control" name="date${this.sessionIndex}" value="${date}" required>
+                </div>
+                <div class="col-md-4">
+                    <select name="seance${this.sessionIndex}" class="form-select">
+                        <option value="1" ${seance == "1" ? "selected" : ""}>Séance 1</option>
+                        <option value="2" ${seance == "2" ? "selected" : ""}>Séance 2</option>
+                    </select>
+                </div>
+                <div class="col-md-3 text-center">${trashButton}</div>
+            </div>
+        `);
+    }
+};
+
+// Module pour la gestion du scan
+const ScanManager = {
+    currentStep: 1,
+    selectedFiliere: null,
+    selectedCours: null,
+    selectedSession: null,
+    scanInterval: null,
+
+    openScanModal: function() {
+        this.currentStep = 1;
+        this.selectedFiliere = null;
+        this.selectedCours = null;
+        this.selectedSession = null;
+        this.showStep(1);
+        this.loadFilieresToday(); // Changé ici
+        new bootstrap.Modal(document.getElementById('scanModal')).show();
+    },
+
+    showStep: function(step) {
+        for (let i = 1; i <= 3; i++) {
+            document.getElementById(`scanStep${i}`).style.display = 'none';
+        }
+        document.getElementById(`scanStep${step}`).style.display = 'block';
+        this.currentStep = step;
+    },
+
+    backToStep: function(step) {
+        this.showStep(step);
+    },
+
+    loadFilieresToday: function() {
+        fetch('/cours/api/filieres/today')
+            .then(response => response.json())
+            .then(data => {
+                const select = document.getElementById('scanFiliereSelect');
+                const today = new Date().toLocaleDateString('fr-FR');
+                select.innerHTML = `<option value="">-- Choisissez une filière (${today}) --</option>`;
+
+                if (data.filieres && data.filieres.length > 0) {
+                    data.filieres.forEach(filiere => {
+                        const option = document.createElement('option');
+                        option.value = filiere;
+                        option.textContent = filiere;
+                        select.appendChild(option);
+                    });
+                    document.getElementById('btnNextToCours').disabled = false;
+                } else {
+                    select.innerHTML += '<option value="" disabled>Aucune filière avec cours aujourd\'hui</option>';
+                    document.getElementById('btnNextToCours').disabled = true;
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Impossible de charger les filières d\'aujourd\'hui');
+            });
+    },
+
+    loadCoursForFiliereToday: function() {
+        if (!this.selectedFiliere) {
+            alert('Veuillez sélectionner une filière');
+            return;
+        }
+
+        fetch(`/cours/api/filiere/${encodeURIComponent(this.selectedFiliere)}/cours/today`)
+            .then(response => response.json())
+            .then(data => {
+                const select = document.getElementById('scanCoursSelect');
+                const today = new Date(data.today).toLocaleDateString('fr-FR');
+                select.innerHTML = `<option value="">-- Choisissez un cours (${today}) --</option>`;
+
+                if (data.cours && data.cours.length > 0) {
+                    data.cours.forEach(cours => {
+                        const option = document.createElement('option');
+                        option.value = cours.id;
+                        option.textContent = `${cours.nom} (S${cours.semestre}) - ${cours.session_count} session(s) aujourd'hui`;
+                        select.appendChild(option);
+                    });
+                    this.showStep(2);
+                    document.getElementById('btnNextToSessions').disabled = false;
+                } else {
+                    alert(`Aucun cours trouvé pour la filière ${this.selectedFiliere} aujourd'hui`);
+                    document.getElementById('btnNextToSessions').disabled = true;
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Impossible de charger les cours d\'aujourd\'hui');
+            });
+    },
+
+    loadSessionsForCoursToday: function() {
+        if (!this.selectedCours) {
+            alert('Veuillez sélectionner un cours');
+            return;
+        }
+
+        fetch(`/cours/api/${this.selectedCours}/sessions/today`)
+            .then(response => response.json())
+            .then(data => {
+                const select = document.getElementById('scanSessionSelect');
+                const today = new Date(data.today).toLocaleDateString('fr-FR');
+                select.innerHTML = `<option value="">-- Choisissez une session (${today}) --</option>`;
+
+                if (data.sessions && data.sessions.length > 0) {
+                    data.sessions.forEach(session => {
+                        const option = document.createElement('option');
+                        option.value = session.id;
+                        const date = new Date(session.date);
+                        option.textContent = `Séance ${session.seance}`;
+                        option.setAttribute('data-date', session.date);
+                        option.setAttribute('data-seance', session.seance);
+                        option.setAttribute('data-cours-nom', session.cours_nom);
+                        select.appendChild(option);
+                    });
+                    this.showStep(3);
+                } else {
+                    alert('Aucune session trouvée pour ce cours aujourd\'hui');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Impossible de charger les sessions d\'aujourd\'hui');
+            });
+    },
+
+    startScan: function() {
+        if (!this.selectedSession) {
+            alert('Veuillez sélectionner une session');
+            return;
+        }
+        const payload = { cours_session_id: parseInt(this.selectedSession) };
+        const selectionModal = bootstrap.Modal.getInstance(document.getElementById('scanModal'));
+        selectionModal.hide();
+        const scanningModal = new bootstrap.Modal(document.getElementById('scanningModal'));
+        scanningModal.show();
+
+        fetch('/scan/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                scanningModal.hide();
+                alert('Erreur: ' + data.error);
+            } else {
+                this.monitorScanStatus();
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            scanningModal.hide();
+            alert('Erreur de connexion: ' + error.message);
+        });
+    },
+
+    monitorScanStatus: function() {
+        this.scanInterval = setInterval(() => {
+            fetch('/scan/status')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.running) {
+                        clearInterval(this.scanInterval);
+                        const scanningModal = bootstrap.Modal.getInstance(document.getElementById('scanningModal'));
+                        scanningModal.hide();
+                        this.showScanResults(data);
+                    }
+                })
+                .catch(() => {
+                    clearInterval(this.scanInterval);
+                });
+        }, 2000);
+    },
+
+    showScanResults: function(data) {
+        let message = 'Scan terminé. ';
+        if (data.detected_count > 0) {
+            message += `${data.detected_count} étudiant(s) détecté(s).`;
+            if (data.detected_students && data.detected_students.length > 0) {
+                message += `\nIDs: ${data.detected_students.join(', ')}`;
+            }
+        } else {
+            message += 'Aucun étudiant détecté.';
+        }
+        alert(message);
+    }
+};
+
+// Événements
+document.addEventListener("DOMContentLoaded", function() {
+    // Initialiser une session par défaut
+    CourseManager.addSessionRow(false);
+
+    // Écouter les changements de filière pour le scan
+    document.getElementById('scanFiliereSelect').addEventListener('change', function() {
+        ScanManager.selectedFiliere = this.value;
+        document.getElementById('btnNextToCours').disabled = !this.value;
+    });
+
+    // Écouter les changements de cours pour le scan
+    document.getElementById('scanCoursSelect').addEventListener('change', function() {
+        ScanManager.selectedCours = this.value;
+        document.getElementById('btnNextToSessions').disabled = !this.value;
+    });
+
+    // Écouter les changements de session pour le scan
+    document.getElementById('scanSessionSelect').addEventListener('change', function() {
+        if (this.value) {
+            ScanManager.selectedSession = this.value;
+            const option = this.options[this.selectedIndex];
+            const date = new Date(option.getAttribute('data-date'));
+            document.getElementById('sessionTitle').textContent = `Session: ${option.getAttribute('data-cours-nom')}`;
+            document.getElementById('infoDate').textContent = date.toLocaleDateString('fr-FR');
+            document.getElementById('infoSeance').textContent = `Séance ${option.getAttribute('data-seance')}`;
+            document.getElementById('sessionInfoCard').style.display = 'block';
+            document.getElementById('btnStartScan').disabled = false;
+        } else {
+            document.getElementById('sessionInfoCard').style.display = 'none';
+            document.getElementById('btnStartScan').disabled = true;
+        }
+    });
+
+    // Gérer la suppression des sessions
+    document.addEventListener("click", function(e) {
+        if(e.target.closest(".remove-session")) {
+            e.target.closest(".session-item").remove();
+        }
+    });
+
+    // Gérer le formulaire de cours
+    document.getElementById("courseForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        const url = CourseManager.currentCourseId ? `/cours/${CourseManager.currentCourseId}/edit` : `/cours/create`;
+        fetch(url, {
+            method: "POST",
+            body: new FormData(this)
+        })
+        .then(r => r.json())
+        .then(d => {
+            if(d.success) {
+                location.reload();
+            } else {
+                alert(d.error || "Erreur lors de l'enregistrement");
+            }
+        })
+        .catch(error => {
+            console.error("Erreur:", error);
+            alert("Erreur lors de l'enregistrement");
+        });
+    });
+});
+</script>
+{% endblock %}

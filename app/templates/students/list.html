@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Liste des Étudiants</h3>
+        <!-- Bouton Ajouter -->
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#studentModal" id="addStudentBtn">
+            <i class="fas fa-plus"></i> Ajouter un étudiant
+        </button>
+    </div>
+
+    <!-- Table scrollable et pleine largeur -->
+    <div class="table-responsive w-100" style="max-height: 600px; overflow-y: auto;">
+        <table class="table table-striped table-hover table-bordered align-middle text-center w-100">
+            <thead class="table-dark">
+                <tr>
+                    <th>Matricule</th>
+                    <th>Nom</th>
+                    <th>Prénom</th>
+                    <th>Filière</th>
+                    <th>Année</th>
+                    <th style="min-width: 180px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td>{{ student.matricule }}</td>
+                    <td>{{ student.nom }}</td>
+                    <td>{{ student.prenom }}</td>
+                    <td>{{ student.filiere }}</td>
+                    <td>{{ student.annee }}</td>
+                    <td>
+                        <!-- Modifier -->
+                        <button class="btn btn-primary btn-sm edit-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#studentModal"
+                                data-student-id="{{ student.id }}">
+                            Modifier
+                        </button>
+
+                        <!-- Supprimer -->
+                        <button class="btn btn-danger btn-sm delete-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#deleteModal"
+                                data-student-id="{{ student.id }}"
+                                data-student-nom="{{ student.nom }}">
+                            Supprimer
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Ajouter / Modifier -->
+<div class="modal fade" id="studentModal" tabindex="-1" aria-labelledby="studentModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="studentModalLabel">Ajouter un étudiant</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body">
+        <form id="studentForm" method="POST" enctype="multipart/form-data" class="row g-3">
+            <input type="hidden" id="student_id" name="student_id">
+
+            <div class="col-md-6">
+                <label for="matricule" class="form-label">Matricule</label>
+                <input type="text" class="form-control" id="matricule" name="matricule" placeholder="Ex: 25GI001" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="nom" class="form-label">Nom</label>
+                <input type="text" class="form-control" id="nom" name="nom" placeholder="Ex: Dupont" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="prenom" class="form-label">Prénom</label>
+                <input type="text" class="form-control" id="prenom" name="prenom" placeholder="Ex: Jean" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="filiere" class="form-label">Filière</label>
+                <input type="text" class="form-control" id="filiere" name="filiere" placeholder="Ex: Génie Informatique">
+            </div>
+
+            <div class="col-md-6">
+                <label for="annee" class="form-label">Année</label>
+                <input type="text" class="form-control" id="annee" name="annee" placeholder="2025-2026">
+            </div>
+
+            <div class="col-md-6">
+                <label for="profil-avant" class="form-label">Profil-avant</label>
+                <input type="file" class="form-control" id="profil-avant" name="profil-avant" accept="image/*">
+            </div>
+             <!-- LIGNE 97: Changer name="profil" en name="profil-gauche" -->
+<div class="col-md-6">
+    <label for="profil-gauche" class="form-label">Profil-gauche</label>
+    <input type="file" class="form-control" id="profil-gauche" name="profil-gauche" accept="image/*">
+</div>
+             <div class="col-md-6">
+                <label for="profil-droite" class="form-label">Profil-droite</label>
+                <input type="file" class="form-control" id="profil-droite" name="profil-droite" accept="image/*">
+            </div>
+
+            <div class="col-12 d-flex justify-content-end">
+                <button type="submit" class="btn btn-success" id="submitBtn">Ajouter</button>
+            </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Confirmation Suppression -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Confirmer la suppression</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body">
+        <p>Voulez-vous vraiment supprimer <strong id="studentName"></strong> ?</p>
+      </div>
+      <div class="modal-footer">
+        <form id="deleteForm" method="POST">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+            <button type="submit" class="btn btn-danger">Supprimer</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const editButtons = document.querySelectorAll('.edit-btn');
+    const addBtn = document.getElementById('addStudentBtn');
+    const modalTitle = document.getElementById('studentModalLabel');
+    const submitBtn = document.getElementById('submitBtn');
+    const form = document.getElementById('studentForm');
+
+    // Ajouter étudiant
+    addBtn.addEventListener('click', () => {
+        modalTitle.textContent = 'Ajouter un étudiant';
+        submitBtn.textContent = 'Ajouter';
+        form.reset();
+        form.action = "{{ url_for('students.create_student') }}";
+        document.getElementById('student_id').value = '';
+    });
+
+    // Modifier étudiant
+    editButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const studentId = btn.getAttribute('data-student-id');
+            modalTitle.textContent = 'Modifier un étudiant';
+            submitBtn.textContent = 'Modifier';
+            form.action = `/students/${studentId}/edit`;
+
+            fetch(`/students/${studentId}/json`)
+                .then(resp => resp.json())
+                .then(data => {
+                    document.getElementById('student_id').value = data.id;
+                    document.getElementById('matricule').value = data.matricule;
+                    document.getElementById('nom').value = data.nom;
+                    document.getElementById('prenom').value = data.prenom;
+                    document.getElementById('filiere').value = data.filiere;
+                    document.getElementById('annee').value = data.annee;
+                });
+        });
+    });
+
+    // Modal suppression
+    const deleteButtons = document.querySelectorAll('.delete-btn');
+    const deleteForm = document.getElementById('deleteForm');
+    const studentName = document.getElementById('studentName');
+
+    deleteButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const studentId = btn.getAttribute('data-student-id');
+            const name = btn.getAttribute('data-student-nom');
+            studentName.textContent = name;
+            deleteForm.action = `/students/${studentId}/delete`;
+        });
+    });
+});
+</script>
+
+{% endblock %}

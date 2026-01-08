@@ -19,3 +19,5 @@ class ProfilModel(db.Model):
     photo_avant = db.Column(db.String(255), nullable=False)
     photo_gauche = db.Column(db.String(255), nullable=False)
     photo_droite = db.Column(db.String(255), nullable=False)
+
+

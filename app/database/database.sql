@@ -75,6 +75,23 @@ CREATE TABLE presence (
         ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+--
+--CREATE TABLE presence (
+--    id INT AUTO_INCREMENT PRIMARY KEY,
+--    etudiant_id INT NOT NULL,
+--    cours_session_id INT NOT NULL,
+--    statut ENUM('P','A') NOT NULL, -- P = présent, A = absent
+--    date_enregistrement TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--    date_mise_a_jour TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+--    CONSTRAINT fk_presence_etudiant
+--        FOREIGN KEY (etudiant_id) REFERENCES etudiant(id)
+--        ON UPDATE CASCADE ON DELETE CASCADE,
+--    CONSTRAINT fk_presence_session
+--        FOREIGN KEY (cours_session_id) REFERENCES cours_session(id)
+--        ON UPDATE CASCADE ON DELETE CASCADE
+--) ENGINE=InnoDB;
+
+
 -- TABLE PROFIL
 CREATE TABLE profil (
     id INT AUTO_INCREMENT PRIMARY KEY,

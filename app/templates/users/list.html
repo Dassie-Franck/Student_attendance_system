@@ -1,0 +1,342 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Gestion des Utilisateurs</h3>
+        <!-- Bouton Ajouter -->
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#userModal" id="addUserBtn">
+            <i class="fas fa-plus"></i> Ajouter un Compte
+        </button>
+    </div>
+
+    <!-- Messages flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Table scrollable et pleine largeur -->
+    <div class="table-responsive w-100" style="max-height: 600px; overflow-y: auto;">
+        <table class="table table-striped table-hover table-bordered align-middle text-center w-100">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Nom</th>
+                    <th>Prénom</th>
+                    <th>Email</th>
+                    <th>Rôle</th>
+                    <th>Filière</th>
+                    <th style="min-width: 180px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if users %}
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.nom }}</td>
+                        <td>{{ user.prenom }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            <span class=>
+                                {% if user.role == 'respoFiliere' %}Responsable
+                                {% elif user.role == 'ensg' %}Enseignant
+                                {% elif user.role == 'delegue' %}Délégué
+                                {% else %}{{ user.role }}{% endif %}
+                            </span>
+                        </td>
+                        <td>{{ user.filiere or '-' }}</td>
+                        <td>
+                            <!-- Modifier -->
+                            <button class="btn btn-primary btn-sm edit-btn"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#userModal"
+                                    data-user-id="{{ user.id }}">
+                                Modifier
+                            </button>
+
+                            <!-- Supprimer -->
+                            <button class="btn btn-danger btn-sm delete-btn"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal"
+                                    data-user-id="{{ user.id }}"
+                                    data-user-name="{{ user.nom }} {{ user.prenom }}">
+                                Supprimer
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="fas fa-users fa-2x mb-3"></i><br>
+                            Aucun utilisateur trouvé
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Ajouter / Modifier -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="userModalLabel">Ajouter un Utilisateur</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body">
+        <form id="userForm" method="POST" class="row g-3">
+            <input type="hidden" id="user_id" name="user_id">
+            <div id="formMessages"></div>
+
+            <div class="col-md-6">
+                <label for="nom" class="form-label">Nom *</label>
+                <input type="text" class="form-control" id="nom" name="nom" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="prenom" class="form-label">Prénom *</label>
+                <input type="text" class="form-control" id="prenom" name="prenom" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="email" class="form-label">Email *</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="password" class="form-label">Mot de passe *</label>
+                <input type="password" class="form-control" id="password" name="password" required>
+                <small class="form-text text-muted" id="passwordHelp">
+                    Minimum 8 caractères
+                </small>
+            </div>
+
+            <div class="col-md-6">
+                <label for="role" class="form-label">Rôle *</label>
+                <select class="form-select" id="role" name="role" required>
+                    <option value="">Sélectionnez un rôle</option>
+                    <option value="HEAD">Responsable (HEAD)</option>
+                    <option value="ENSEIGNANT">Enseignant (ENSG)</option>
+                    <option value="DELEGUE">Délégué</option>
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label for="filiere" class="form-label">Filière</label>
+                <input type="text" class="form-control" id="filiere" name="filiere"
+                       placeholder="Ex: Génie Informatique">
+            </div>
+
+            <div class="col-12 d-flex justify-content-end">
+                <button type="submit" class="btn btn-success" id="submitBtn">Ajouter</button>
+            </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Confirmation Suppression -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Confirmer la suppression</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body">
+        <p>Voulez-vous vraiment supprimer <strong id="userName"></strong> ?</p>
+        <p class="text-danger"><small>Cette action est irréversible</small></p>
+      </div>
+      <div class="modal-footer">
+        <form id="deleteForm" method="POST">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+            <button type="submit" class="btn btn-danger">Supprimer</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const editButtons = document.querySelectorAll('.edit-btn');
+    const addBtn = document.getElementById('addUserBtn');
+    const modalTitle = document.getElementById('userModalLabel');
+    const submitBtn = document.getElementById('submitBtn');
+    const form = document.getElementById('userForm');
+    const formMessages = document.getElementById('formMessages');
+    const passwordInput = document.getElementById('password');
+    const passwordHelp = document.getElementById('passwordHelp');
+
+    // Fonction pour convertir la valeur du rôle pour l'affichage
+    function convertRoleForForm(roleValue) {
+        if (roleValue === 'respoFiliere') return 'HEAD';
+        if (roleValue === 'ensg') return 'ENSEIGNANT';
+        if (roleValue === 'delegue') return 'DELEGUE';
+        return roleValue;
+    }
+
+    // Fonction pour convertir la valeur du formulaire pour la base
+    function convertRoleForDB(roleValue) {
+        if (roleValue === 'HEAD') return 'respoFiliere';
+        if (roleValue === 'ENSEIGNANT') return 'ensg';
+        if (roleValue === 'DELEGUE') return 'delegue';
+        return roleValue;
+    }
+
+    // Ajouter utilisateur
+    addBtn.addEventListener('click', () => {
+        clearMessages();
+        modalTitle.textContent = 'Ajouter un Utilisateur';
+        submitBtn.textContent = 'Ajouter';
+        form.reset();
+        form.action = "{{ url_for('user.create_user') }}";
+        document.getElementById('user_id').value = '';
+        passwordInput.required = true;
+        passwordHelp.textContent = 'Minimum 8 caractères';
+    });
+
+    // Modifier utilisateur
+    editButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            clearMessages();
+            const userId = btn.getAttribute('data-user-id');
+            modalTitle.textContent = 'Modifier un Utilisateur';
+            submitBtn.textContent = 'Modifier';
+            form.action = `/users/${userId}/edit`;
+
+            fetch(`/users/${userId}/json`)
+                .then(resp => resp.json())
+                .then(data => {
+                    document.getElementById('user_id').value = data.id;
+                    document.getElementById('nom').value = data.nom;
+                    document.getElementById('prenom').value = data.prenom;
+                    document.getElementById('email').value = data.email;
+                    // Convertir le rôle pour l'affichage dans le select
+                    document.getElementById('role').value = convertRoleForForm(data.role);
+                    document.getElementById('filiere').value = data.filiere;
+                    passwordInput.required = false;
+                    passwordHelp.textContent = 'Laisser vide pour ne pas modifier';
+                });
+        });
+    });
+
+    // Soumission du formulaire
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        clearMessages();
+
+        const formData = new FormData(this);
+        const url = this.action;
+        const isEdit = url.includes('/edit');
+
+        // Convertir le rôle pour la base de données
+        const roleValue = formData.get('role');
+        formData.set('role', convertRoleForDB(roleValue));
+
+        // Validation
+        if (!formData.get('nom') || !formData.get('prenom') || !formData.get('email') || !formData.get('role')) {
+            showMessage('Tous les champs obligatoires doivent être remplis', 'danger');
+            return;
+        }
+
+        if (!isEdit && !formData.get('password')) {
+            showMessage('Le mot de passe est requis pour un nouvel utilisateur', 'danger');
+            return;
+        }
+
+        fetch(url, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showMessage(data.message, 'success');
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                showMessage(data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            showMessage('Erreur réseau: ' + error.message, 'danger');
+        });
+    });
+
+    // Modal suppression
+    const deleteButtons = document.querySelectorAll('.delete-btn');
+    const deleteForm = document.getElementById('deleteForm');
+    const userName = document.getElementById('userName');
+
+    deleteButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const userId = btn.getAttribute('data-user-id');
+            const name = btn.getAttribute('data-user-name');
+            userName.textContent = name;
+            deleteForm.action = `/users/${userId}/delete`;
+        });
+    });
+
+    // Soumission suppression
+    deleteForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const url = this.action;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Fermer le modal et recharger
+                const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
+                deleteModal.hide();
+                setTimeout(() => {
+                    location.reload();
+                }, 500);
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            alert('Erreur lors de la suppression: ' + error.message);
+        });
+    });
+
+    // Fonctions utilitaires
+    function showMessage(text, type) {
+        formMessages.innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                ${text}
+                <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+            </div>
+        `;
+    }
+
+    function clearMessages() {
+        formMessages.innerHTML = '';
+    }
+});
+</script>
+{% endblock %}

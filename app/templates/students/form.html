@@ -1,23 +1,48 @@
-<form method="post" enctype="multipart/form-data">
-    <label>Nom</label>
-    <input type="text" name="nom" required value="{{ student.nom if student else '' }}">
+<form id="studentForm" method="POST" enctype="multipart/form-data" class="row g-3">
+    <input type="hidden" id="student_id" name="student_id">
 
-    <label>Prénom</label>
-    <input type="text" name="prenom" required value="{{ student.prenom if student else '' }}">
+    <div class="col-md-6">
+        <label for="matricule" class="form-label">Matricule</label>
+        <input type="text" class="form-control" id="matricule" name="matricule" placeholder="Ex: 25GI001" required>
+    </div>
 
-    <label>Matricule</label>
-    <input type="text" name="matricule" required value="{{ student.matricule if student else '' }}">
+    <div class="col-md-6">
+        <label for="nom" class="form-label">Nom</label>
+        <input type="text" class="form-control" id="nom" name="nom" placeholder="Ex: Dupont" required>
+    </div>
 
-    <label>Filière</label>
-    <input type="text" name="filiere" required value="{{ student.filiere if student else '' }}">
+    <div class="col-md-6">
+        <label for="prenom" class="form-label">Prénom</label>
 
-    <label>Année</label>
-    <input type="text" name="annee" required value="{{ student.annee if student else '' }}">
+        <input type="text" class="form-control" id="prenom" name="prenom" placeholder="Ex: Jean" required>
+    </div>
 
-    <h4>Photos (avant, gauche, droite)</h4>
-    <input type="file" name="avant" {% if not student %} required {% endif %}>
-    <input type="file" name="gauche" {% if not student %} required {% endif %}>
-    <input type="file" name="droite" {% if not student %} required {% endif %}>
+    <div class="col-md-6">
+        <label for="filiere" class="form-label">Filière</label>
+        <input type="text" class="form-control" id="filiere" name="filiere" placeholder="Ex: Génie Informatique">
+    </div>
 
-    <button type="submit">Enregistrer</button>
+    <div class="col-md-6">
+        <label for="annee" class="form-label">Année</label>
+        <input type="text" class="form-control" id="annee" name="annee" placeholder="2025-2026">
+    </div>
+
+    <div class="col-md-6">
+        <label for="profil-avant" class="form-label">Profil-avant</label>
+        <input type="file" class="form-control" id="profil-avant" name="profil-avant" accept="image/*">
+    </div>
+
+    <div class="col-md-6">
+        <label for="profil-gauche" class="form-label">Profil-gauche</label>
+        <input type="file" class="form-control" id="profil-gauche" name="profil-gauche" accept="image/*">
+    </div>
+
+    <div class="col-md-6">
+        <label for="profil-droite" class="form-label">Profil-droite</label>
+        <input type="file" class="form-control" id="profil-droite" name="profil-droite" accept="image/*">
+    </div>
+
+    <div class="col-12 d-flex justify-content-end">
+        <button type="submit" class="btn btn-success" id="submitBtn">Ajouter</button>
+    </div>
 </form>

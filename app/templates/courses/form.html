@@ -1,99 +1,136 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Créer un cours</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/cours.css') }}">
-</head>
-<body>
+{% extends "base_users.html" %}
 
-<div class="container">
-    <h2>📘 Création d’un cours</h2>
+{% block content %}
+<div class="container mt-4">
+    <h3>{% if cours %}Modifier le Cours{% else %}Créer un Cours{% endif %}</h3>
+    
+    <form method="POST" class="mt-4">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="nom" class="form-label">Nom du Cours *</label>
+                    <input type="text" class="form-control" id="nom" name="nom"
+                           value="{{ cours.nom if cours else '' }}" required>
+                </div>
+            </div>
 
-    <form method="post" class="course-form">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="filiere" class="form-label">Filière *</label>
+                    <input type="text" class="form-control" id="filiere" name="filiere"
+                           value="{{ cours.filiere if cours else '' }}" required>
+                </div>
+            </div>
 
-        <!-- Nom du cours -->
-        <div class="form-group">
-            <label>Nom du cours</label>
-            <input type="text" name="nom" placeholder="Ex: Réseaux Informatiques"
-                   required>
-        </div>
-
-        <!-- Filière -->
-        <div class="form-group">
-            <label>Filière</label>
-            <input type="text" name="filiere" placeholder="Ex: Informatique"
-                   required>
-        </div>
-
-        <!-- Semestre -->
-        <div class="form-group">
-            <label>Semestre</label>
-            <select name="semestre" required>
-                <option value="">-- Choisir le semestre --</option>
-                <option value="S1">Semestre 1 (S1)</option>
-                <option value="S2">Semestre 2 (S2)</option>
-            </select>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="semestre" class="form-label">Semestre *</label>
+                    <input type="text" class="form-control" id="semestre" name="semestre"
+                           value="{{ cours.semestre if cours else '' }}" required>
+                </div>
+            </div>
         </div>
 
         <hr>
 
-        <h3>🕒 Séances du cours</h3>
+        <h5>Sessions du Cours</h5>
 
-        <!-- Session 1 -->
-        <div class="session-box">
-            <h4>Séance 1</h4>
-
-            <div class="session-row">
-                <div>
-                    <label>Date</label>
-                    <input type="date" name="date1" required>
-                </div>
-
-                <div>
-                    <label>Heure</label>
-                    <select name="seance1" required>
-    {% for seance in seances %}
-        <option value="{{ seance.value }}">
-            {{ seance.label }}
-        </option>
-    {% endfor %}
-</select>
-
-                </div>
-            </div>
-        </div>
-
-        <!-- Session 2 -->
-        <div class="session-box">
-            <h4>Séance 2 (optionnelle)</h4>
-
-            <div class="session-row">
-                <div>
-                    <label>Date</label>
-                    <input type="date" name="date2">
-                </div>
-
-                <div>
-                    <label>Heure</label>
-                    <select name="seance2">
-                        <option value="">-- Aucune --</option>
-                        {% for seance in seances %}
-                            <option value="{{ seance.value }}">
-                                {{ seance.name }}
+        <div id="sessions-container">
+            {% if cours and cours.sessions %}
+                {% for session in cours.sessions %}
+                <div class="row session-row mb-3">
+                    <div class="col-md-5">
+                        <label class="form-label">Date *</label>
+                        <input type="date" class="form-control" name="date{{ loop.index }}"
+                               value="{{ session.date.strftime('%Y-%m-%d') if session.date else '' }}" required>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label">Séance *</label>
+                        <select class="form-select" name="seance{{ loop.index }}" required>
+                            {% for seance in seances %}
+                            <option value="{{ seance.value }}"
+                                    {% if session.seance == seance.value %}selected{% endif %}>
+                                Séance {{ seance.value }}
                             </option>
-                        {% endfor %}
-                    </select>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        {% if loop.index > 1 %}
+                        <button type="button" class="btn btn-danger btn-sm remove-session">Supprimer</button>
+                        {% endif %}
+                    </div>
                 </div>
-            </div>
+                {% endfor %}
+            {% else %}
+                <div class="row session-row mb-3">
+                    <div class="col-md-5">
+                        <label class="form-label">Date *</label>
+                        <input type="date" class="form-control" name="date1" required>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label">Séance *</label>
+                        <select class="form-select" name="seance1" required>
+                            {% for seance in seances %}
+                            <option value="{{ seance.value }}">Séance {{ seance.value }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2"></div>
+                </div>
+            {% endif %}
         </div>
 
-        <button type="submit" class="btn-submit">
-            ✔ Enregistrer le cours
+        <button type="button" id="add-session" class="btn btn-secondary btn-sm mb-3">
+            <i class="fas fa-plus"></i> Ajouter une session
         </button>
 
+        <div class="mt-4">
+            <button type="submit" class="btn btn-success">
+                {% if cours %}Modifier{% else %}Créer{% endif %}
+            </button>
+            <a href="{{ url_for('cours.list_courses') }}" class="btn btn-secondary">Annuler</a>
+        </div>
     </form>
 </div>
 
-</body>
-</html>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let sessionCount = {{ cours.sessions|length if cours and cours.sessions else 1 }};
+
+    document.getElementById('add-session').addEventListener('click', function() {
+        sessionCount++;
+
+        const newSession = document.createElement('div');
+        newSession.className = 'row session-row mb-3';
+        newSession.innerHTML = `
+            <div class="col-md-5">
+                <label class="form-label">Date *</label>
+                <input type="date" class="form-control" name="date${sessionCount}" required>
+            </div>
+            <div class="col-md-5">
+                <label class="form-label">Séance *</label>
+                <select class="form-select" name="seance${sessionCount}" required>
+                    {% for seance in seances %}
+                    <option value="{{ seance.value }}">Séance {{ seance.value }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="button" class="btn btn-danger btn-sm remove-session">Supprimer</button>
+            </div>
+        `;
+
+        document.getElementById('sessions-container').appendChild(newSession);
+    });
+
+    // Gestion de la suppression des sessions
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-session')) {
+            e.target.closest('.session-row').remove();
+            sessionCount--;
+        }
+    });
+});
+</script>
+{% endblock %}

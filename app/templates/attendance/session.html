@@ -1,0 +1,197 @@
+{% extends "base_users.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold">
+            <i class="fas fa-clipboard-list text-primary me-2"></i>Liste de présence
+        </h4>
+        <div>
+            <a href="/attendance/" class="btn btn-secondary me-2">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+            {% if attendance_data %}
+            <a href="/attendance/export/csv/{{ attendance_data.session_id }}"
+               class="btn btn-success">
+                <i class="fas fa-download"></i> Télécharger CSV
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if attendance_data %}
+    <!-- EN-TÊTE DE LA SESSION -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="fw-bold">{{ attendance_data.cours_nom }}</h5>
+                    <p class="mb-1">
+                        <i class="fas fa-graduation-cap text-primary"></i>
+                        <strong>Filière:</strong> {{ attendance_data.cours_filiere }}
+                    </p>
+                    <p class="mb-1">
+                        <i class="fas fa-layer-group text-primary"></i>
+                        <strong>Semestre:</strong> {{ attendance_data.cours_semestre }}
+                    </p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <p class="mb-1">
+                        <i class="fas fa-calendar text-primary"></i>
+                        <strong>Date:</strong> {{ attendance_data.session_date.strftime('%d/%m/%Y') }}
+                    </p>
+                    <p class="mb-1">
+                        <i class="fas fa-clock text-primary"></i>
+                        <strong>Séance:</strong> {{ attendance_data.session_seance }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LISTE DES ÉTUDIANTS -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Liste des étudiants</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="attendanceTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Matricule</th>
+                            <th>Nom</th>
+                            <th>Prénom</th>
+                            <th>Filière</th>
+                            <th>Année</th>
+                            <th class="text-center">Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for attendance in attendance_data.attendance_list %}
+                        <tr data-etudiant-id="{{ attendance.etudiant_id }}"
+                            data-session-id="{{ attendance.cours_session_id }}">
+                            <td class="fw-bold">{{ attendance.matricule }}</td>
+                            <td>{{ attendance.nom }}</td>
+                            <td>{{ attendance.prenom }}</td>
+                            <td>{{ attendance.filiere }}</td>
+                            <td>{{ attendance.annee }}</td>
+                            <td class="text-center">
+                                <div class="btn-group" role="group">
+                                    <button type="button"
+                                            class="btn btn-sm {% if attendance.statut == 'P' %}btn-success{% else %}btn-outline-success{% endif %}"
+                                            onclick="updateStatus(this, 'P')">
+                                        <i class="fas fa-check"></i> Présent
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-sm {% if attendance.statut == 'A' %}btn-danger{% else %}btn-outline-danger{% endif %}"
+                                            onclick="updateStatus(this, 'A')">
+                                        <i class="fas fa-times"></i> Absent
+                                    </button>
+                                </div>
+                                <input type="hidden" class="current-status" value="{{ attendance.statut }}">
+                                <input type="hidden" class="presence-id" value="{{ attendance.presence_id }}">
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        Aucune donnée de présence disponible.
+    </div>
+    {% endif %}
+</div>
+
+<!-- SCRIPT SIMPLIFIÉ -->
+<script>
+function updateStatus(button, newStatus) {
+    const row = button.closest('tr');
+    const etudiantId = row.getAttribute('data-etudiant-id');
+    const sessionId = row.getAttribute('data-session-id');
+    const presenceId = row.querySelector('.presence-id').value;
+    const currentStatus = row.querySelector('.current-status').value;
+
+    // Si le statut ne change pas, ne rien faire
+    if (currentStatus === newStatus) {
+        return;
+    }
+
+    // Préparer les données
+    const data = {
+        etudiant_id: parseInt(etudiantId),
+        cours_session_id: parseInt(sessionId),
+        statut: newStatus
+    };
+
+    // Si présence existe déjà, ajouter l'ID
+    if (presenceId) {
+        data.presence_id = parseInt(presenceId);
+    }
+
+    // Mettre à jour visuellement
+    updateVisualStatus(row, newStatus);
+
+    // Envoyer la requête AJAX
+    fetch('/attendance/update', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            // Mettre à jour l'ID de présence si création
+            if (!presenceId && result.presence_id) {
+                row.querySelector('.presence-id').value = result.presence_id;
+            }
+
+            // Afficher message
+            showMessage('Statut mis à jour', 'success');
+        } else {
+            // Revenir à l'ancien statut en cas d'erreur
+            updateVisualStatus(row, currentStatus);
+            showMessage('Erreur: ' + result.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        updateVisualStatus(row, currentStatus);
+        showMessage('Erreur de connexion', 'error');
+    });
+}
+
+function updateVisualStatus(row, status) {
+    const presentButton = row.querySelector('.btn-outline-success, .btn-success');
+    const absentButton = row.querySelector('.btn-outline-danger, .btn-danger');
+
+    // Mettre à jour le statut actuel
+    row.querySelector('.current-status').value = status;
+
+    // Mettre à jour l'apparence des boutons
+    if (status === 'P') {
+        presentButton.classList.remove('btn-outline-success');
+        presentButton.classList.add('btn-success');
+        absentButton.classList.remove('btn-danger');
+        absentButton.classList.add('btn-outline-danger');
+    } else {
+        presentButton.classList.remove('btn-success');
+        presentButton.classList.add('btn-outline-success');
+        absentButton.classList.remove('btn-outline-danger');
+        absentButton.classList.add('btn-danger');
+    }
+}
+
+function showMessage(message, type) {
+    // Créer un simple alert
+    alert(message);
+}
+</script>
+{% endblock %}

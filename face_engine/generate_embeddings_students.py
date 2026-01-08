@@ -41,5 +41,5 @@ def generate_student_embedding(student_folder):
 
 if __name__ == "__main__":
     # Remplace par le chemin complet ou relatif vers ton dossier étudiant_14
-    student_folder = r"..\dataset\etudiant_15"
+    student_folder = r"..\dataset\etudiant_37"
     generate_student_embedding(student_folder)

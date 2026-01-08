@@ -1,9 +1,11 @@
+# app/services/student_service.py
 from app.repositories.student_repository import EtudiantRepository
 
 class EtudiantService:
 
     @staticmethod
     def create(data, files):
+        # CORRECTION: utilisez create_etudiant, pas create
         return EtudiantRepository.create_etudiant(data, files)
 
     @staticmethod

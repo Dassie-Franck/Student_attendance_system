@@ -1,0 +1,39 @@
+<!-- app/templates/attendance/error.html -->
+{% extends "base.html" %}
+
+{% block title %}Erreur{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Erreur</h4>
+                </div>
+                <div class="card-body text-center">
+                    <i class="fas fa-bug fa-4x text-danger mb-3"></i>
+                    <h5 class="card-title">Une erreur est survenue</h5>
+                    <p class="card-text text-muted">{{ message }}</p>
+
+                    {% if message == "attendance/consulter.html" or message == "attendance/error.html" %}
+                    <div class="alert alert-info mt-3">
+                        <strong>Information :</strong> Le template n'a pas encore été créé.
+                        Créez le fichier <code>{{ message }}</code> dans le dossier templates.
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-4">
+                        <a href="javascript:history.back()" class="btn btn-outline-secondary me-2">
+                            <i class="fas fa-arrow-left me-1"></i>Retour
+                        </a>
+                        <a href="{{ url_for('attendance.consulter_presences') }}" class="btn btn-primary">
+                            <i class="fas fa-home me-1"></i>Page d'accueil
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

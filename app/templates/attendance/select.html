@@ -1,0 +1,182 @@
+<!-- app/templates/attendance/select.html -->
+{% extends "base_users.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold">
+            <i class="fas fa-clipboard-list text-primary me-2"></i>
+            Consulter une liste d'appel
+        </h4>
+        <div class="text-muted">
+            <i class="fas fa-calendar-day"></i> {{ today.strftime('%d/%m/%Y') }}
+        </div>
+    </div>
+
+    <!-- SELECTION EN 2 ÉTAPES -->
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-search"></i> Sélectionner
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- ÉTAPE 1: Sélection du cours -->
+                    <div class="mb-4">
+                        <h6>1. Choisissez votre cours</h6>
+                        {% if cours_list %}
+                        <div class="list-group">
+                            {% for cours in cours_list %}
+                            <a href="#" class="list-group-item list-group-item-action cours-item"
+                               data-cours-id="{{ cours.id }}"
+                               onclick="selectCours(this)">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ cours.nom }}</strong><br>
+                                        <small class="text-muted">
+                                            <i class="fas fa-graduation-cap"></i> {{ cours.filiere }} •
+                                            <i class="fas fa-book"></i> S{{ cours.semestre }}
+                                        </small>
+                                    </div>
+                                    <i class="fas fa-chevron-right"></i>
+                                </div>
+                            </a>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-book fa-2x mb-2"></i>
+                            <p>Vous n'avez aucun cours</p>
+                            <a href="{{ url_for('cours.list_courses') }}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Créer un cours
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- ÉTAPE 2: Sélection de la session (cachée au départ) -->
+                    <div id="sessionsSection" style="display: none;">
+                        <h6>2. Choisissez la session</h6>
+                        <div id="sessionsList" class="mb-3">
+                            <div class="text-center">
+                                <div class="spinner-border text-primary"></div>
+                                <p class="mt-2">Chargement des sessions...</p>
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary" onclick="backToCours()">
+                            <i class="fas fa-arrow-left"></i> Retour aux cours
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let selectedCoursId = null;
+
+function selectCours(element) {
+    // Retirer la sélection précédente
+    document.querySelectorAll('.cours-item').forEach(item => {
+        item.classList.remove('active');
+    });
+
+    // Sélectionner le cours
+    element.classList.add('active');
+    selectedCoursId = element.getAttribute('data-cours-id');
+
+    // Afficher la section des sessions
+    document.getElementById('sessionsSection').style.display = 'block';
+    document.querySelectorAll('.cours-item').forEach(item => {
+        if (item !== element) {
+            item.style.display = 'none';
+        }
+    });
+
+    // Charger les sessions de ce cours
+    loadSessions(selectedCoursId);
+}
+
+function backToCours() {
+    // Revenir à la sélection des cours
+    document.getElementById('sessionsSection').style.display = 'none';
+    document.querySelectorAll('.cours-item').forEach(item => {
+        item.style.display = 'block';
+        item.classList.remove('active');
+    });
+    selectedCoursId = null;
+}
+
+function loadSessions(coursId) {
+    const sessionsList = document.getElementById('sessionsList');
+    sessionsList.innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border text-primary"></div>
+            <p class="mt-2">Chargement des sessions...</p>
+        </div>
+    `;
+
+    fetch(`/attendance/cours/${coursId}/sessions`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.sessions.length === 0) {
+                sessionsList.innerHTML = `
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-calendar-times fa-2x"></i>
+                        <p>Aucune session programmée</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<div class="list-group">';
+
+            data.sessions.forEach(session => {
+                const hasPresence = session.has_presence ?
+                    '<span class="badge bg-success float-end">Scan effectué</span>' :
+                    '<span class="badge bg-secondary float-end">Non scanné</span>';
+
+                html += `
+                    <a href="/attendance/view/${session.id}" class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${session.date} - Séance ${session.seance}</strong><br>
+                                <small class="text-muted">${data.cours.nom}</small>
+                            </div>
+                            <div>
+                                ${hasPresence}
+                                <i class="fas fa-eye ms-2"></i>
+                            </div>
+                        </div>
+                    </a>
+                `;
+            });
+
+            html += '</div>';
+            sessionsList.innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            sessionsList.innerHTML = `
+                <div class="alert alert-danger">
+                    Erreur de chargement des sessions
+                </div>
+            `;
+        });
+}
+</script>
+
+<style>
+.cours-item:hover {
+    background-color: #f8f9fa;
+}
+.cours-item.active {
+    background-color: #e7f1ff;
+    border-color: #0d6efd;
+}
+</style>
+{% endblock %}

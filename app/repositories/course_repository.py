@@ -1,4 +1,6 @@
-from app.models.course import CoursModel, CoursSessionModel
+
+from app.models.course import CoursModel
+from app.models.course_session import CoursSessionModel
 from app.database.connDB import db
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -37,7 +39,7 @@ class CoursRepository:
 
     @staticmethod
     def get_all():
-        return CoursModel.query.all()
+        return CoursModel.query.limit(2).all()
 
     @staticmethod
     def update(cours, nom, filiere, semestre, sessions):
